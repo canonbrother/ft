@@ -34,32 +34,19 @@ fn should_create_contract() {
         
         // <Runtime as pallet_evm::Config::Runner>::create(
         // <Test as pallet_evm::Config::Runner>::create(
-        <Runtime>::create(
+        let result = <Test as pallet_evm::Config::Runner>::create(
             caller,
             contract,
-            U256::from(123123),
-            U256::from(1000000),
+            U256::from("0x1192227"),
+            1000000,
             Some(U256::from("0x640000006a")),
             vec![],
-            Some(U256::from(1)),
+            Some(U256::from("1")),
             vec![],
             true,
-            <Test as pallet_evm::Config>::config
+            <Runtime as pallet_evm::Config>::config
         ).unwrap();
-
-        // let result = <Runtime>::create(
-        //     caller,
-        //     contract,
-        //     U256::from(123123),
-        //     U256::from(1000000),
-        //     Some(U256::from("0x640000006a")),
-        //     vec![],
-        //     Some(U256::from(1)),
-        //     vec![],
-        //     true,
-        //     <Runtime as pallet_evm::Config>::config
-        // ).unwrap();
-        // println!("{:?}: ", result);
+        println!("{:?}: ", result);
 
         assert_eq!(1+1, 2)
     });
