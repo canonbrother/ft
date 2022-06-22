@@ -34,17 +34,17 @@ fn should_create_contract() {
         
         // <Runtime as pallet_evm::Config::Runner>::create(
         // <Test as pallet_evm::Config::Runner>::create(
-        let result = <Test as pallet_evm::Config::Runner>::create(
+        let result = <Test as pallet_evm::Config>::Runner::create(
             caller,
             contract,
             U256::from("0x1192227"),
             1000000,
             Some(U256::from("0x640000006a")),
-            vec![],
+            None,
             Some(U256::from("1")),
             vec![],
             true,
-            <Runtime as pallet_evm::Config>::config
+            <Test as pallet_evm::Config>::config()
         ).unwrap();
         println!("{:?}: ", result);
 
