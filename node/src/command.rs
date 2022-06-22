@@ -32,6 +32,7 @@ use crate::{
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
+		// @TODO(canonbrother): Rename
 		"Frontier Node".into()
 	}
 
