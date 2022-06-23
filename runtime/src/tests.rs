@@ -29,24 +29,26 @@ fn should_create_contract() {
     println!("{:?}: ", contract);
 
     ExtBuilder::default().build().execute_with(|| {
-        let caller = alice();
-        println!("{:?}: ", caller);
+        // assert_eq!(crate::mock::Balances::free_balance(alice()), 1000000000000000);
+        println!("crate::mock::Balances::free_balance(alice()): {:?}", crate::mock::Balances::free_balance(alice()));
         
-        // <Runtime as pallet_evm::Config::Runner>::create(
-        // <Test as pallet_evm::Config::Runner>::create(
+        let caller = alice();
+        println!("caller: {:?}", caller);
+        
         let result = <Test as pallet_evm::Config>::Runner::create(
             caller,
             contract,
-            U256::from("0x1192227"),
+            U256::from("0"),
             1000000,
-            Some(U256::from("0x640000006a")),
+            // Some(U256::from("0x640000006a")), // 429496729706 <-- trigger BalanceLow err
+            Some(U256::from("1")),
             None,
             Some(U256::from("1")),
             vec![],
             true,
             <Test as pallet_evm::Config>::config()
         ).unwrap();
-        println!("{:?}: ", result);
+        println!("result: {:?}", result);
 
         assert_eq!(1+1, 2)
     });

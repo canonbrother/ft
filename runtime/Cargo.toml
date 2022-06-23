@@ -18,6 +18,7 @@ serde = { version = "1.0.101", default-features = false, features = ["derive"], 
 
 fp-self-contained = { git = 'https://github.com/paritytech/frontier.git', default-features = false }
 fp-rpc = { git = 'https://github.com/paritytech/frontier.git', default-features = false }
+fp-evm = { git = 'https://github.com/paritytech/frontier.git', default-features = false }
 
 pallet-aura = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
 pallet-balances = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }

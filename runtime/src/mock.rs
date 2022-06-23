@@ -5,18 +5,25 @@ use core::str::FromStr;
 use sp_core::H160;
 
 use frame_support::{
-	construct_runtime, parameter_types, traits::{Everything, ConstU64}
+	construct_runtime,
+	parameter_types,
+	traits::{Everything, ConstU64, GenesisBuild}
 };
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, IdentityAddressMapping};
+use fp_evm::GenesisAccount;
+use std::collections::BTreeMap;
 
 pub type AccountId = H160;
 pub type Balance = u64;
+
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
+
+pub const INITIAL_BALANCE: Balance = 1_000_000_000_000_000;
 
 pub fn alice() -> H160 {
 	H160::from_str("1000000000000000000000000000000000000001").unwrap()
@@ -38,6 +45,7 @@ construct_runtime!(
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 }
+
 impl frame_system::Config for Test {
 	type BaseCallFilter = Everything;
 	type BlockWeights = ();
@@ -110,15 +118,16 @@ impl pallet_evm::Config for Test {
 	// type WeightInfo = ();
 }
 
-// impl Config for Test {}
-
 pub(crate) struct ExtBuilder {
+	// Accounts endowed with balances
     balances: Vec<(AccountId, Balance)>,
 }
 
 impl Default for ExtBuilder {
     fn default() -> Self {
-        ExtBuilder { balances: vec![] }
+        ExtBuilder {
+			balances: vec![],
+		}
     }
 }
 
@@ -129,11 +138,39 @@ impl ExtBuilder {
             .expect("Test ExtBuilder setup successfully");
         
         pallet_balances::GenesisConfig::<Test> {
-            balances: self.balances,
+            balances: vec![(H160::default(), INITIAL_BALANCE)],
         }
         .assimilate_storage(&mut t)
         .expect("Pallet balances storage can be assimilated");
         
+		// This is the simplest bytecode to revert without returning any data.
+		// We will pre-deploy it under all of our precompiles to ensure they can be called from
+		// within contracts.
+		// (PUSH1 0x00 PUSH1 0x00 REVERT)
+		// let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
+		
+		let mut accounts = BTreeMap::<H160, GenesisAccount>::new();
+		accounts.insert(
+			alice(),
+			GenesisAccount {
+				nonce: U256::from("1"),
+				balance: U256::from(INITIAL_BALANCE),
+				// storage: BTreeMap::new(),
+				storage: Default::default(),
+				// code: revert_bytecode.clone(),
+				code: vec![
+					0x00, // STOP
+				]
+			},
+		);
+        
+		GenesisBuild::<Test>::assimilate_storage(
+			&pallet_evm::GenesisConfig {
+				accounts
+			}, 
+			&mut t
+		).unwrap();
+
         let mut ext = sp_io::TestExternalities::new(t);
         ext.execute_with(|| System::set_block_number(1));
         ext
