@@ -2,10 +2,15 @@
 // use crate::*;
 use super::*;
 use mock::*;
+use fp_evm::{
+    ExitReason,
+    ExitSucceed,
+};
 use sp_core::{
     U256,
     bytes::from_hex,
 };
+use std::str::FromStr;
 
 #[test]
 fn should_create_contract() {
@@ -42,5 +47,16 @@ fn should_create_contract() {
             <Test as pallet_evm::Config>::config()
         ).unwrap();
         println!("result: {:?}", result);
+        assert_eq!(result.exit_reason, ExitReason::Succeed(ExitSucceed::Returned));
+        
+        println!("result.value: {:?}", result.value);
+        let contract_address = result.value;
+        assert_eq!(contract_address, H160::from_str("5f8bd49cd9f0cb2bd5bb9d4320dfe9b61023249d").unwrap());
+
+        // multiply(2, 3)
+		let multiply = from_hex(
+            "0x165c4a1600000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000003"
+		).unwrap();
+        println!("multiply: {:?}", multiply);
     });
 }
