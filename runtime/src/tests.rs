@@ -7,13 +7,6 @@ use sp_core::{
     bytes::from_hex,
 };
 
-// #[test]
-// fn fake_test_example() {
-//     ExtBuilder::default().build().execute_with(|| {
-//         assert_eq!(1+1, 2)
-//     });
-// }
-
 #[test]
 fn should_create_contract() {
     // pragma solidity ^0.5.0;
@@ -49,7 +42,5 @@ fn should_create_contract() {
             <Test as pallet_evm::Config>::config()
         ).unwrap();
         println!("result: {:?}", result);
-
-        assert_eq!(1+1, 2)
     });
 }
