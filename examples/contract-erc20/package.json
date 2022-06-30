@@ -6,6 +6,7 @@
 		"@polkadot/util-crypto": "^2.10.1",
 		"ts-node": "^8.10.1",
 		"typescript": "^3.9.3",
+		"web3-utils": "^1.7.4",
 		"web3x": "^4.0.6"
 	}
 }
