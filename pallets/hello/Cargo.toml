@@ -1,0 +1,29 @@
+[package]
+name = "hello"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
+codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = ["derive"] }
+serde = { version = "1.0.101", default-features = false, features = ["derive"], optional = true }
+scale-info = { version = "2.0.0", default-features = false, features = ["derive"] }
+
+# Substrate packages
+frame-support = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
+frame-system = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
+sp-runtime = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
+
+[dev-dependencies]
+sp-core = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
+sp-io = { default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
+
+[features]
+default = ['std']
+std = [
+	'codec/std',
+	'scale-info/std',
+	'frame-support/std',
+	'frame-system/std',
+	'sp-runtime/std',
+]
