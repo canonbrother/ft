@@ -58,5 +58,23 @@ fn should_create_contract() {
             "0x165c4a1600000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000003"
 		).unwrap();
         println!("multiply: {:?}", multiply);
+
+        // call method `multiply`
+        let result = <Test as pallet_evm::Config>::Runner::call(
+            alice(),
+            contract_address,
+            multiply,
+            U256::from("0"),
+            1000000,
+            Some(U256::from("1000000")),
+            None,
+            // Some(U256::from("1")),
+            None,
+            vec![],
+            true,
+            <Test as pallet_evm::Config>::config(),
+        ).unwrap();
+        println!("multiply: {:?}", U256::from(result.value.as_slice())); // 6
+        assert_eq!(U256::from(result.value.as_slice()), 6.into());
     });
 }
