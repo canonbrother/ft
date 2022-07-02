@@ -1,0 +1,90 @@
+use crate::{self as hello, Config};
+use frame_support::{
+	assert_noop, assert_ok, construct_runtime, dispatch::DispatchError, parameter_types,
+	traits::Everything
+};
+use frame_system::RawOrigin;
+use sp_core::H256;
+use sp_io::TestExternalities;
+use sp_runtime::{
+	testing::Header,
+	traits::{BlakeTwo256, IdentityLookup},
+};
+
+type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
+type Block = frame_system::mocking::MockBlock<Test>;
+
+construct_runtime!(
+    pub enum Test where
+        Block = Block,
+        NodeBlock = Block,
+        UncheckedExtrinsic = UncheckedExtrinsic,
+    {
+        System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
+        Hello: hello::{Pallet, Call},
+    }
+);
+
+parameter_types! {
+    pub const BlockHashCount: u64 = 250;
+    pub BlockWeights: frame_system::limits::BlockWeights =
+        frame_system::limits::BlockWeights::simple_max(1024);
+}
+impl frame_system::Config for Test {
+    type BaseCallFilter = Everything;
+	type BlockWeights = ();
+	type BlockLength = ();
+	type Origin = Origin;
+	type Index = u64;
+	type Call = Call;
+	type BlockNumber = u64;
+	type Hash = H256;
+	type Hashing = BlakeTwo256;
+	type AccountId = u64;
+	type Lookup = IdentityLookup<Self::AccountId>;
+	type Header = Header;
+	type Event = Event;
+	type BlockHashCount = BlockHashCount;
+	type DbWeight = ();
+	type Version = ();
+	type PalletInfo = PalletInfo;
+	type AccountData = ();
+	type OnNewAccount = ();
+	type OnKilledAccount = ();
+	type SystemWeightInfo = ();
+	type SS58Prefix = ();
+    type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
+}
+
+impl Config for Test {}
+
+struct ExtBuilder; // ExternalityBuilder
+
+impl ExtBuilder {
+    pub fn build() -> TestExternalities {
+        let storage = frame_system::GenesisConfig::default()
+            .build_storage::<Test>()
+            .unwrap();
+        let mut ext = TestExternalities::from(storage);
+        ext.execute_with(|| System::set_block_number(1));
+        ext
+    }
+}
+
+#[test]
+fn say_hello_works() {
+    ExtBuilder::build().execute_with(|| {
+        assert_ok!(Hello::say_hello(Origin::signed(1)));
+    })
+}
+
+#[test]
+fn say_hello_no_root() {
+    ExtBuilder::build().execute_with(|| {
+        assert_noop!(
+            Hello::say_hello(RawOrigin::Root.into()),
+            DispatchError::BadOrigin
+        );
+    })
+}
