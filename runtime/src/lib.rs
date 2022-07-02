@@ -414,6 +414,9 @@ construct_runtime!(
 	}
 );
 
+// A unit struct that can covert ethereum-formatted transactions into Substrate-formatted transactions
+// The ConvertTransaction trait is implemented twice. Once for Unchecked Extrinsic and once for Opaque Unchecked Extrinsic
+// Essentially we wrap the raw ethereum transaction in a call to the transact extrinsic in pallet ethereum.
 pub struct TransactionConverter;
 
 impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
