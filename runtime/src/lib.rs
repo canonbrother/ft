@@ -112,13 +112,14 @@ pub mod opaque {
 }
 
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("node-frontier-template"),
-	impl_name: create_runtime_str!("node-frontier-template"),
-	authoring_version: 1,
-	spec_version: 1,
-	impl_version: 1,
-	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 1,
+	// TODO(canonbrother): Rename
+	spec_name: create_runtime_str!("node-frontier-template"), // runtime name
+	impl_name: create_runtime_str!("node-frontier-template"), // client name
+	authoring_version: 1, // block authors version
+	spec_version: 1, // runtime version, eg: Increment the value to upgrade the runtime
+	impl_version: 1, // client version
+	apis: RUNTIME_API_VERSIONS, // specifies list of supported APIs
+	transaction_version: 1, // dispatchable function interface version
 	state_version: 1,
 };
 
