@@ -608,6 +608,7 @@ impl_runtime_apis! {
 		}
 	}
 
+	// Install runtime api
 	impl fp_rpc::EthereumRuntimeRPCApi<Block> for Runtime {
 		fn chain_id() -> u64 {
 			<Runtime as pallet_evm::Config>::ChainId::get()
