@@ -13,7 +13,7 @@ import { DispatchError, EventRecord } from '@polkadot/types/interfaces';
 const keyringEth = new Keyring({ type: 'ethereum' });
 
 export const BINARY_PATH =
-  process.env.BINARY_PATH || `../target/release/frontier-template-node`;
+  process.env.BINARY_PATH || '../target/release/frontier-template-node';
 export const DISPLAY_LOG = process.env.FRONTIER_LOG || false;
 export const SPAWNING_TIME = 20000;
 export const ALITH_PRIVATE_KEY =
@@ -86,9 +86,9 @@ export interface DevTestContext {
 
   // We also provided singleton providers for simplicity
   web3: EnhancedWeb3;
-  // ethers: ethers.providers.JsonRpcProvider;
+  ethers: ethers.providers.JsonRpcProvider;
   polkadotApi: ApiPromise;
-  // rpcPort: number;
+  rpcPort: number;
   ethTransactionType?: EthTransactionType;
 }
 
@@ -162,7 +162,6 @@ export async function startDevNode(): Promise<ChildProcess> {
     }, SPAWNING_TIME - 2000);
 
     const onData = async (chunk: any) => {
-      console.log(chunk.toString());
       if (DISPLAY_LOG) {
         console.log(chunk.toString());
       }
@@ -322,11 +321,7 @@ beforeAll(async () => {
   jest.setTimeout(SPAWNING_TIME);
   runningNode = await startDevNode();
 
-  // context.rpcPort = init.rpcPort;
-
-  // Context is given prior to this assignement, so doing
-  // context = init.context will fail because it replace the variable;
-
+  context.rpcPort = rpcPort;
   context._polkadotApis = [];
   context._web3Providers = [];
 
@@ -355,7 +350,7 @@ beforeAll(async () => {
 
   context.polkadotApi = await context.createPolkadotApi();
   context.web3 = await context.createWeb3();
-  // context.ethers = await context.createEthers();
+  context.ethers = await context.createEthers();
 
   // context.createBlock = async <
   //   ApiType extends ApiTypes,
@@ -481,38 +476,25 @@ beforeAll(async () => {
   //     result: Array.isArray(transactions) ? result : (result[0] as any)
   //   };
   // };
-
-  // debug(
-  //   `Setup ready [${/:([0-9]+)$/.exec((context.web3.currentProvider as any).host)[1]}] for ${
-  //     this.currentTest.title
-  //   }`
-  // );
 });
 
 afterAll(async function () {
-  console.log('afterAll');
   await Promise.all(context._web3Providers.map((p) => p.disconnect()));
   await Promise.all(context._polkadotApis.map((p) => p.disconnect()));
-
-  console.log('runningNode 0: ', runningNode);
 
   if (runningNode) {
     await new Promise((resolve) => {
       runningNode?.once('exit', resolve);
       runningNode?.kill();
       runningNode = null;
-      console.log('afterAll runningNode null');
     });
   }
-  console.log('runningNode 1: ', runningNode);
 });
 
-it('', async () => {
-  console.log('it 0');
-  // await context.createBlock();
+it('test balances', async () => {
+  console.log('test balances');
   console.log(
     'getBalance',
     await context.web3.eth.getBalance(alith.address, 0)
   );
-  console.log('it 1');
 });
