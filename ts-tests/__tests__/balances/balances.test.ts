@@ -66,23 +66,23 @@ export interface DevTestContext {
   createEthers: () => Promise<ethers.providers.JsonRpcProvider>;
   createPolkadotApi: () => Promise<ApiPromise>;
 
-  // createBlock<
-  //   ApiType extends ApiTypes,
-  //   Call extends
-  //     | SubmittableExtrinsic<ApiType>
-  //     | Promise<SubmittableExtrinsic<ApiType>>
-  //     | string
-  //     | Promise<string>,
-  //   Calls extends Call | Call[]
-  // >(
-  //   transactions?: Calls,
-  //   options?: BlockCreation
-  // ): Promise<
-  //   BlockCreationResponse<
-  //     ApiType,
-  //     Calls extends Call[] ? Awaited<Call>[] : Awaited<Call>
-  //   >
-  // >;
+  createBlock<
+    ApiType extends ApiTypes,
+    Call extends
+      | SubmittableExtrinsic<ApiType>
+      | Promise<SubmittableExtrinsic<ApiType>>
+      | string
+      | Promise<string>,
+    Calls extends Call | Call[]
+  >(
+    transactions?: Calls,
+    options?: BlockCreation
+  ): Promise<
+    BlockCreationResponse<
+      ApiType,
+      Calls extends Call[] ? Awaited<Call>[] : Awaited<Call>
+    >
+  >;
 
   // We also provided singleton providers for simplicity
   web3: EnhancedWeb3;
@@ -118,11 +118,10 @@ export async function startDevNode(): Promise<ChildProcess> {
     `--force-authoring`, // enable authoring even when offline
     `--rpc-cors=all`,
     `--alice`, // shortcut for `--name Alice --validator` with session keys for `Alice` added to keystore
-    // '--chain= ./specs/chain_spec.json',
-    // `--sealing=manual`, // mb feat
+    // '--chain= ./test-spec.json',
+    `--sealing=manual`,
     `--in-peers=0`,
     `--out-peers=0`,
-    // `-l${MOONBEAM_LOG}`,
     `--port=${port}`,
     `--rpc-port=${rpcPort}`,
     `--ws-port=${wsPort}`,
@@ -166,7 +165,7 @@ export async function startDevNode(): Promise<ChildProcess> {
         console.log(chunk.toString());
       }
       binaryLogs.push(chunk);
-      if (chunk.toString().match(/Listening for new connections/)) {
+      if (chunk.toString().match(/Manual Seal Ready/)) {
         clearTimeout(timer);
         if (!DISPLAY_LOG) {
           runningNode.stderr?.off('data', onData);
@@ -233,33 +232,32 @@ export async function customWeb3Request(
   });
 }
 
-// export async function createAndFinalizeBlock(
-//   api: ApiPromise,
-//   parentHash?: string,
-//   finalize: boolean = true
-// ): Promise<{
-//   duration: number;
-//   hash: string;
-// }> {
-//   console.log('createAndFinalizeBlock api: ');
-//   const startTime: number = Date.now();
+export async function createAndFinalizeBlock(
+  api: ApiPromise,
+  parentHash?: string,
+  finalize: boolean = true
+): Promise<{
+  duration: number;
+  hash: string;
+}> {
+  console.log('createAndFinalizeBlock api: ');
+  const startTime: number = Date.now();
 
-//   let block: CreatedBlock;
+  let block: CreatedBlock;
 
-//   try {
-//     block = parentHash
-//       ? await api.rpc.engine.createBlock(true, finalize, parentHash)
-//       : await api.rpc.engine.createBlock(true, finalize);
-//     console.log('block: ', block);
-//   } catch (err) {
-//     console.log('err: ', err);
-//   }
+  try {
+    block = parentHash
+      ? await api.rpc.engine.createBlock(true, finalize, parentHash)
+      : await api.rpc.engine.createBlock(true, finalize);
+  } catch (err) {
+    console.log('err: ', err);
+  }
 
-//   return {
-//     duration: Date.now() - startTime,
-//     hash: block!.get('hash')!.toString()
-//   };
-// }
+  return {
+    duration: Date.now() - startTime,
+    hash: block!.get('blockHash')!.toString()
+  };
+}
 
 export const providePolkadotApi = async (port: number) => {
   return await ApiPromise.create({
@@ -352,130 +350,130 @@ beforeAll(async () => {
   context.web3 = await context.createWeb3();
   context.ethers = await context.createEthers();
 
-  // context.createBlock = async <
-  //   ApiType extends ApiTypes,
-  //   Call extends
-  //     | SubmittableExtrinsic<ApiType>
-  //     | Promise<SubmittableExtrinsic<ApiType>>
-  //     | string
-  //     | Promise<string>,
-  //   Calls extends Call | Call[]
-  // >(
-  //   transactions?: Calls,
-  //   options: BlockCreation = {}
-  // ) => {
-  //   console.log('context.createBlock');
-  //   const results: (
-  //     | { type: 'eth'; hash: string }
-  //     | { type: 'sub'; hash: string }
-  //   )[] = [];
-  //   const txs =
-  //     transactions == undefined
-  //       ? []
-  //       : Array.isArray(transactions)
-  //       ? transactions
-  //       : [transactions];
+  context.createBlock = async <
+    ApiType extends ApiTypes,
+    Call extends
+      | SubmittableExtrinsic<ApiType>
+      | Promise<SubmittableExtrinsic<ApiType>>
+      | string
+      | Promise<string>,
+    Calls extends Call | Call[]
+  >(
+    transactions?: Calls,
+    options: BlockCreation = {}
+  ) => {
+    console.log('context.createBlock');
+    const results: (
+      | { type: 'eth'; hash: string }
+      | { type: 'sub'; hash: string }
+    )[] = [];
+    const txs =
+      transactions == undefined
+        ? []
+        : Array.isArray(transactions)
+        ? transactions
+        : [transactions];
 
-  //   for await (const call of txs) {
-  //     if (typeof call == 'string') {
-  //       // Ethereum
-  //       results.push({
-  //         type: 'eth',
-  //         hash: (
-  //           await customWeb3Request(context.web3, 'eth_sendRawTransaction', [
-  //             call
-  //           ])
-  //         ).result
-  //       });
-  //     } else if (call.isSigned) {
-  //       results.push({
-  //         type: 'sub',
-  //         hash: (await call.send()).toString()
-  //       });
-  //     } else {
-  //       results.push({
-  //         type: 'sub',
-  //         hash: (await call.signAndSend(alith)).toString()
-  //       });
-  //     }
-  //   }
+    for await (const call of txs) {
+      if (typeof call == 'string') {
+        // Ethereum
+        results.push({
+          type: 'eth',
+          hash: (
+            await customWeb3Request(context.web3, 'eth_sendRawTransaction', [
+              call
+            ])
+          ).result
+        });
+      } else if (call.isSigned) {
+        results.push({
+          type: 'sub',
+          hash: (await call.send()).toString()
+        });
+      } else {
+        results.push({
+          type: 'sub',
+          hash: (await call.signAndSend(alith)).toString()
+        });
+      }
+    }
 
-  //   const { parentHash, finalize } = options;
-  //   const blockResult = await createAndFinalizeBlock(
-  //     context.polkadotApi,
-  //     parentHash,
-  //     finalize
-  //   );
-  //   console.log('blockResult: ', blockResult);
+    const { parentHash, finalize } = options;
+    const blockResult = await createAndFinalizeBlock(
+      context.polkadotApi,
+      parentHash,
+      finalize
+    );
+    console.log('blockResult: ', blockResult);
 
-  //   // No need to extract events if no transactions
-  //   if (results.length == 0) {
-  //     return {
-  //       block: blockResult,
-  //       result: null
-  //     };
-  //   }
+    // No need to extract events if no transactions
+    if (results.length == 0) {
+      return {
+        block: blockResult,
+        result: null
+      };
+    }
 
-  //   // We retrieve the events for that block
-  //   const allRecords: EventRecord[] = (await (
-  //     await context.polkadotApi.at(blockResult.hash)
-  //   ).query.system.events()) as any;
-  //   // We retrieve the block (including the extrinsics)
-  //   const blockData = await context.polkadotApi.rpc.chain.getBlock(
-  //     blockResult.hash
-  //   );
+    // We retrieve the events for that block
+    const allRecords: EventRecord[] = (await (
+      await context.polkadotApi.at(blockResult.hash)
+    ).query.system.events()) as any;
+    // We retrieve the block (including the extrinsics)
+    const blockData = await context.polkadotApi.rpc.chain.getBlock(
+      blockResult.hash
+    );
 
-  //   const a: Awaited<Promise<number>> = 0;
+    const a: Awaited<Promise<number>> = 0;
 
-  //   const result: ExtrinsicCreation[] = results.map((result) => {
-  //     let extrinsicIndex =
-  //       result.type == 'eth'
-  //         ? allRecords
-  //             .find(
-  //               ({ phase, event: { section, method, data } }) =>
-  //                 phase.isApplyExtrinsic &&
-  //                 section == 'ethereum' &&
-  //                 method == 'Executed' &&
-  //                 data[3].toString() &&
-  //                 result.hash
-  //             )
-  //             ?.phase?.asApplyExtrinsic?.toNumber() ?? 0
-  //         : blockData.block.extrinsics.findIndex(
-  //             (ext) => ext.hash.toHex() == result.hash
-  //           );
+    const result: ExtrinsicCreation[] = results.map((result) => {
+      let extrinsicIndex =
+        result.type == 'eth'
+          ? allRecords
+              .find(
+                ({ phase, event: { section, method, data } }) =>
+                  phase.isApplyExtrinsic &&
+                  section == 'ethereum' &&
+                  method == 'Executed' &&
+                  data[3].toString() &&
+                  result.hash
+              )
+              ?.phase?.asApplyExtrinsic?.toNumber() ?? 0
+          : blockData.block.extrinsics.findIndex(
+              (ext) => ext.hash.toHex() == result.hash
+            );
 
-  //     // We retrieve the events associated with the extrinsic
-  //     const events = allRecords.filter(
-  //       ({ phase }) =>
-  //         phase.isApplyExtrinsic &&
-  //         phase.asApplyExtrinsic.toNumber() === extrinsicIndex
-  //     );
-  //     const failed = extractError(events);
-  //     return {
-  //       extrinsic:
-  //         extrinsicIndex >= 0
-  //           ? blockData.block.extrinsics[extrinsicIndex]
-  //           : null,
-  //       events,
-  //       error:
-  //         failed &&
-  //         ((failed.isModule &&
-  //           context.polkadotApi.registry.findMetaError(failed.asModule)) ||
-  //           ({ name: failed.toString() } as RegistryError)),
-  //       successful: !failed,
-  //       hash: result.hash
-  //     };
-  //   });
+      // We retrieve the events associated with the extrinsic
+      const events = allRecords.filter(
+        ({ phase }) =>
+          phase.isApplyExtrinsic &&
+          phase.asApplyExtrinsic.toNumber() === extrinsicIndex
+      );
+      const failed = extractError(events);
+      return {
+        extrinsic:
+          extrinsicIndex >= 0
+            ? blockData.block.extrinsics[extrinsicIndex]
+            : null,
+        events,
+        error:
+          failed &&
+          ((failed.isModule &&
+            context.polkadotApi.registry.findMetaError(failed.asModule)) ||
+            ({ name: failed.toString() } as RegistryError)),
+        successful: !failed,
+        hash: result.hash
+      };
+    });
 
-  //   // Adds extra time to avoid empty transaction when querying it
-  //   if (results.find((r) => r.type == 'eth')) {
-  //     await new Promise((resolve) => setTimeout(resolve, 2));
-  //   }
-  //   return {
-  //     block: blockResult,
-  //     result: Array.isArray(transactions) ? result : (result[0] as any)
-  //   };
-  // };
+    // Adds extra time to avoid empty transaction when querying it
+    if (results.find((r) => r.type == 'eth')) {
+      await new Promise((resolve) => setTimeout(resolve, 2));
+    }
+    return {
+      block: blockResult,
+      result: Array.isArray(transactions) ? result : (result[0] as any)
+    };
+  };
 });
 
 afterAll(async function () {
@@ -497,4 +495,6 @@ it('test balances', async () => {
     'getBalance',
     await context.web3.eth.getBalance(alith.address, 0)
   );
+
+  await context.createBlock();
 });

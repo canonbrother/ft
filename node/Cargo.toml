@@ -21,7 +21,7 @@ version = '3.0.0'
 [features]
 aura = ['frontier-template-runtime/aura']
 manual-seal = ['frontier-template-runtime/manual-seal']
-default = ['aura']
+default = ['manual-seal']
 rpc_binary_search_estimate = ['fc-rpc/rpc_binary_search_estimate']
 runtime-benchmarks = ['frontier-template-runtime/runtime-benchmarks']
 
