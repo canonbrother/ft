@@ -97,7 +97,7 @@ interface InternalDevTestContext extends DevTestContext {
   _web3Providers: HttpProvider[];
 }
 
-export async function startDevNode(): Promise<ChildProcess> {
+export async function startDevNode(withWasm = true): Promise<ChildProcess> {
   while (nodeStarted) {
     // Wait 100ms to see if the node is free
     await new Promise((resolve) => {
@@ -107,7 +107,7 @@ export async function startDevNode(): Promise<ChildProcess> {
   nodeStarted = true;
 
   const args = [
-    // withWasm ? `--execution=Wasm` : `--execution=Native`, // Faster execution using native
+    withWasm ? `--execution=Wasm` : `--execution=Native`, // Faster execution using native
     // process.env.FORCE_COMPILED_WASM
     //   ? `--wasm-execution=compiled`
     //   : `--wasm-execution=interpreted-i-know-what-i-do`,
@@ -317,7 +317,7 @@ beforeAll(async () => {
   jest.setTimeout(5000);
 
   jest.setTimeout(SPAWNING_TIME);
-  runningNode = await startDevNode();
+  runningNode = await startDevNode(false);
 
   context.rpcPort = rpcPort;
   context._polkadotApis = [];
