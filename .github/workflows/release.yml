@@ -30,18 +30,18 @@ jobs:
           target: wasm32-unknown-unknown
           default: true
 
-      - name: Build metachain
+      - name: Build frontier
         run: |
-          cargo build -r metachain-node -- --manual-seal=manual --dev
+          cargo build -r frontier-node-template -- --manual-seal=manual --dev
           mkdir -p ${{ github.workspace }}/artifacts
-          mv ${{ github.workspace }}/target/production/metachain-node ${{ github.workspace }}/artifacts/
+          mv ${{ github.workspace }}/target/production/frontier-node-template ${{ github.workspace }}/artifacts/
           pushd ${{ github.workspace }}/artifacts
-          sha256sum metachain-node | tee metachain-node.sha256
-          shasum -c metachain-node.sha256
+          sha256sum frontier-node-template | tee frontier-node-template.sha256
+          shasum -c frontier-node-template.sha256
           popd
 
       - name: Upload deploy
         uses: actions/upload-artifact@v3
         with:
-          name: metachain-artifacts
+          name: frontier-artifacts
           path: ${{ github.workspace }}/artifacts/*

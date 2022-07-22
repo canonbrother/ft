@@ -23,7 +23,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@97c170d70b5f8bfc77e6b23e68381f217cb64ded
         with:
-          images: defich/metachain
+          images: canonbrother/frontier-node-template
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -44,4 +44,3 @@ jobs:
             linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
