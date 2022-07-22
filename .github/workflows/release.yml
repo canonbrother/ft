@@ -1,0 +1,47 @@
+name: Release
+on:
+  release:
+    types: [ published ]
+
+jobs:
+  build-release:
+    name: Build binary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set tag from input
+        run: |
+          echo "Tag: ${{ github.event.inputs.tag }}"
+          echo "TAG=${{ github.event.inputs.tag }}" >> "$GITHUB_ENV"
+
+      - name: Set Tag from release
+        if: ${{ github.event.release.tag_name }}
+        run: |
+          echo "TAG=${{ github.event.release.tag_name }}" >> "$GITHUB_ENV"
+
+      - name: Check to latest commit
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@88dc2356392166efad76775c878094f4e83ff746
+        with:
+          profile: minimal
+          toolchain: nightly-2022-05-11
+          components: rustfmt
+          target: wasm32-unknown-unknown
+          default: true
+
+      - name: Build metachain
+        run: |
+          cargo build -r metachain-node -- --manual-seal=manual --dev
+          mkdir -p ${{ github.workspace }}/artifacts
+          mv ${{ github.workspace }}/target/production/metachain-node ${{ github.workspace }}/artifacts/
+          pushd ${{ github.workspace }}/artifacts
+          sha256sum metachain-node | tee metachain-node.sha256
+          shasum -c metachain-node.sha256
+          popd
+
+      - name: Upload deploy
+        uses: actions/upload-artifact@v3
+        with:
+          name: metachain-artifacts
+          path: ${{ github.workspace }}/artifacts/*
