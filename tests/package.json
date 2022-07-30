@@ -10,6 +10,9 @@
   "scripts": {
     "test": "jest"
   },
+  "dependencies": {
+    "testcontainers": "^8.12.0"
+  },
   "devDependencies": {
     "@babel/core": "^7.18.6",
     "@babel/preset-env": "^7.18.6",
