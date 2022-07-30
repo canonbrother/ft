@@ -247,8 +247,8 @@ impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = ();
-	#[cfg(feature = "aura")]
-	type OnTimestampSet = Aura;
+	// #[cfg(feature = "aura")]
+	// type OnTimestampSet = Aura;
 	#[cfg(feature = "manual-seal")]
 	type OnTimestampSet = ();
 }
@@ -380,32 +380,32 @@ construct_runtime!(
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		
+
 		// Consensus
 		Aura: pallet_aura::{Pallet, Config<T>},
 		Grandpa: pallet_grandpa::{Pallet, Call, Storage, Config, Event},
-		
+
 		// Monetary
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
-		
+
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
-		
+
 		// Ethereum compatibility
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Config, Origin},
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
 		DynamicFee: pallet_dynamic_fee::{Pallet, Call, Storage, Config, Inherent},
 		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event},
-		
+
 		// Governance
 		// pallet_schedule, pallet_democracy
 
 		// Council
 		// pallet_collective
-		
+
 		// Treasury
 		// pallet_treasury
-		
+
 		// Crowdloan
 		// pallet_crowdloan_rewards
 
@@ -608,6 +608,7 @@ impl_runtime_apis! {
 		}
 	}
 
+	// Install runtime api
 	impl fp_rpc::EthereumRuntimeRPCApi<Block> for Runtime {
 		fn chain_id() -> u64 {
 			<Runtime as pallet_evm::Config>::ChainId::get()
