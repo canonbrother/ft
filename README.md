@@ -216,3 +216,13 @@ transferred (`0xdd`, or 221 in hex).
 
 After the extrinsic has finalized, use the `Chain State` app to query `evm > accountStorage` to see
 the ERC-20 balances for both Alice and Bob.
+
+## Run full node
+
+Generate node key.
+
+```sh
+mkdir -p ~/node-key
+subkey generate-node-key --file ~/node-key/ft.key
+```
+
