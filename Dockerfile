@@ -3,8 +3,6 @@
 
 FROM rustlang/rust:nightly
 
-
-ARG PROFILE=release
 WORKDIR /frontier
 
 # Upcd dates core parts
@@ -14,12 +12,8 @@ RUN apt-get update -y && \
 # Install rust wasm. Needed for substrate wasm engine
 RUN rustup target add wasm32-unknown-unknown
 
-# Download Frontier repo
-RUN git clone https://github.com/paritytech/frontier /frontier
-RUN cd /frontier && git submodule init && git submodule update
-
 # Download rust dependencies and build the rust binary
-RUN cargo build "--$PROFILE"
+RUN cargo build -r
 
 # 30333 for p2p traffic
 # 9933 for RPC call
@@ -27,10 +21,7 @@ RUN cargo build "--$PROFILE"
 # 9615 for Prometheus (metrics)
 EXPOSE 30333 9933 9944 9615
 
-
-ENV PROFILE ${PROFILE}
-
 # The execution will re-compile the project to run it
 # This allows to modify the code and not have to re-compile the
 # dependencies.
-CMD cargo run --bin frontier-template-node "--$PROFILE" -- --dev
+CMD cargo run --bin frontier-template-node -- --sealing=manual --dev
